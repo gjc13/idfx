@@ -20,6 +20,11 @@ Execute next command inside of your WSL to install `idfx`
 wget https://git.io/JyBgj -O $HOME/.local/bin/idfx && chmod u+x $HOME/.local/bin/idfx
 ```
 
+## Using with latest master on new chips
+
+The new chips on IDF master requires the cutting-edge esptool and extra configs.
+Run `idfx update_tool` before using idfx on these chips.
+
 # Usage
 
 Signature:

@@ -89,16 +89,16 @@ idfx_check_build_config() {
 
   idfx_check_proj
 
-  local IDFX_CONFIG_ENV_FILE='build/config.env'
+  local IDFX_FLASHER_ARGS_FILE='build/flasher_args.json'
 
-  if ! [ -f "$IDFX_CONFIG_ENV_FILE" ]; then
-    idfx_err "Error: Cannot find $IDFX_CONFIG_ENV_FILE"
+  if ! [ -f "$IDFX_FLASHER_ARGS_FILE" ]; then
+    idfx_err "Error: Cannot find $IDFX_FLASHER_ARGS_FILE"
     idfx_err 'Make sure to first build the project with next command'
     idfx_err $'\t''idfx build'
     return $IDFX_FAIL
   fi
 
-  IDFX_TARGET=$(grep -oP '(?<="IDF_TARGET": ")[^"]*' $IDFX_CONFIG_ENV_FILE)
+  IDFX_TARGET=$(grep -oP '(?<="chip"   : ")[^"]*' $IDFX_FLASHER_ARGS_FILE)
 
   IDFX_STATUS_BUILD_CONFIG=$IDFX_OK
   return $IDFX_STATUS_BUILD_CONFIG
@@ -272,6 +272,16 @@ idfx_usage() {
   '
 }
 
+idfx_update_tool() {
+  local idf_esptool_path="${IDF_PATH}/components/esptool_py/esptool/"
+  local idfx_esptool_path=$(python.exe -c 'import esptool; print(esptool.__file__)')
+  local target_disk=$(echo "${idfx_esptool_path}" | cut -f1 -d : | awk '{print tolower($0)}')
+  local target_dir=$(dirname $(echo ${idfx_esptool_path//\\/\/} | cut -f2 -d:))
+  local target_path="/mnt/${target_disk}${target_dir}"
+  cp -r ${idf_esptool_path}/esp*.py ${target_path}
+  cp -r ${idf_esptool_path}/espressif ${target_path}
+}
+
 idfx_main() {
   shift $(($OPTIND-1))
 
@@ -297,6 +307,8 @@ idfx_main() {
       idfx_erase_flash ${port} ;;
     help)
       idfx_usage ;;
+    update_tool)
+      idfx_update_tool  ;;
     *)
       if [ -n "${1}" ]; then
         idfx_forward_to_idfpy "${@}"
